@@ -9,8 +9,8 @@ import numpy as np
 from numpy.linalg import norm
 
 from .learn import inplace_train
-from .clearn import inplace_update_collocates  #, inplace_update_z
-from .marc.update_z import inplace_update_z
+from .clearn import inplace_update_z, inplace_update_collocates
+from .marc.update_z import py_update_z
 from .softmax import build_huffman_tree, convert_huffman_tree
 from .stick_breaking import expected_pi
 from .utils import rand_arr
@@ -168,16 +168,23 @@ class VectorModel(object):
         word_idx = self.dictionary.word2id[word]
         if use_prior:
             z = expected_pi(self, word_idx)
-            z[z < min_prob] = 0
+            eps = np.finfo(z.dtype).eps
+            z[z < min_prob] = eps   # To avoid div 0 warning
             z = np.log(z)
         else:
             z = np.zeros(self.prototypes, dtype=np.float64)
 
-        return inplace_update_z(
+        return py_update_z(
             self, z, word_idx,
             context=np.array([self.dictionary.word2id[w] for w in context
                               if w in self.dictionary.word2id],
                              dtype=np.int32))
+
+        # inplace_update_z(
+        #     self, z, word_idx,
+        #     context=np.array([self.dictionary.word2id[w] for w in context
+        #                       if w in self.dictionary.word2id],
+        #                      dtype=np.int32))
         # return z
 
     def inverse_disambiguate(self, word, sense):

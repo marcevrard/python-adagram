@@ -17,7 +17,7 @@ def update_z(inputs, outputs,
     return z_exp / sum(z_exp)
 
 
-def inplace_update_z(vm, z, w, context):
+def py_update_z(vm, z, w, context):
     return update_z(vm.In, vm.Out,
                     z, w, context,
                     vm.path, vm.code)
