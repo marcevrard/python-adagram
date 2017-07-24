@@ -1,5 +1,3 @@
-
-
 import numpy as np
 from scipy.special import expit  # pylint: disable=no-name-in-module
 
@@ -8,19 +6,15 @@ def update_z(inputs, outputs,
              z, x, context_ids,
              paths, codes):
 
-    _, max_n_senses, _ = inputs.shape
-    _, path_length = paths.shape
-
     for y in context_ids:
-        for n in range(path_length):
-            if codes[y, n] != -1:
+        for code, path_w in zip(codes[y], paths[y]):
+            if code != -1:
+                f = inputs[x] @ outputs[path_w]
+                z += np.log(expit(f * (1 - 2 * code)))  # pylint: disable=no-member
 
-                for k in range(max_n_senses):
-                    f = inputs[x, k] @ outputs[paths[y, n]]
+    z_exp = np.exp(z - max(z))
 
-                    z[k] += np.log(expit(f * (1 - 2*codes[y, n])))  # pylint: disable=no-member
-
-    return np.exp(z - max(z)) / sum(z)
+    return z_exp / sum(z_exp)
 
 
 def inplace_update_z(vm, z, w, context):

@@ -10,7 +10,7 @@ from numpy.linalg import norm
 
 from .learn import inplace_train
 from .clearn import inplace_update_collocates  #, inplace_update_z
-from marc import inplace_update_z
+from .marc.update_z import inplace_update_z
 from .softmax import build_huffman_tree, convert_huffman_tree
 from .stick_breaking import expected_pi
 from .utils import rand_arr
@@ -172,12 +172,13 @@ class VectorModel(object):
             z = np.log(z)
         else:
             z = np.zeros(self.prototypes, dtype=np.float64)
-        inplace_update_z(
+
+        return inplace_update_z(
             self, z, word_idx,
             context=np.array([self.dictionary.word2id[w] for w in context
                               if w in self.dictionary.word2id],
                              dtype=np.int32))
-        return z
+        # return z
 
     def inverse_disambiguate(self, word, sense):
         """ Run "inverse" disambiguation over the whole vocabulary.
