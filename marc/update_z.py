@@ -8,20 +8,22 @@ def update_z(inputs, outputs,
              z, x, context_ids,
              paths, codes):
 
-    voc_length, max_n_senses, _dim = inputs.shape
-    context_length = len(context_ids)
+    _, max_n_senses, _ = inputs.shape
+    _, path_length = paths.shape
 
-    for idx in range(context_length):
-        y = context_ids[idx]
-        sub_paths = paths[y * voc_length]
-        sub_codes = codes[y * voc_length]
-
-        for n in range(voc_length):
-            if sub_codes[n] != -1:
+    for y in context_ids:
+        for n in range(path_length):
+            if codes[y, n] != -1:
 
                 for k in range(max_n_senses):
-                    f = inputs[x, k] @ outputs[sub_paths[n]]
+                    f = inputs[x, k] @ outputs[paths[y, n]]
 
-                    z[k] += np.log(expit(f * (1 - 2*sub_codes[n])))  # pylint: disable=no-member
+                    z[k] += np.log(expit(f * (1 - 2*codes[y, n])))  # pylint: disable=no-member
 
-    z = np.exp(z - max(z)) / sum(z)
+    return np.exp(z - max(z)) / sum(z)
+
+
+def inplace_update_z(vm, z, w, context):
+    return update_z(vm.In, vm.Out,
+                    z, w, context,
+                    vm.path, vm.code)
