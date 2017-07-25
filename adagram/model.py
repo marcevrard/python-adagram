@@ -16,6 +16,9 @@ from .stick_breaking import expected_pi
 from .utils import rand_arr
 
 
+# pylint: disable=no-member
+
+
 class Dictionary(object):
     def __init__(self, words_freqs, preserve_indices=False):
         if not preserve_indices:
@@ -170,22 +173,22 @@ class VectorModel(object):
             z = expected_pi(self, word_idx)
             eps = np.finfo(z.dtype).eps
             z[z < min_prob] = eps   # To avoid div 0 warning
-            z = np.log(z)
+            z_log = np.log(z)
         else:
-            z = np.zeros(self.prototypes, dtype=np.float64)
+            z_log = np.zeros(self.prototypes, dtype=np.float64)
 
         return py_update_z(
-            self, z, word_idx,
+            self, z_log, word_idx,
             context=np.array([self.dictionary.word2id[w] for w in context
                               if w in self.dictionary.word2id],
                              dtype=np.int32))
 
         # inplace_update_z(
-        #     self, z, word_idx,
+        #     self, z_log, word_idx,
         #     context=np.array([self.dictionary.word2id[w] for w in context
         #                       if w in self.dictionary.word2id],
         #                      dtype=np.int32))
-        # return z
+        # return z_log
 
     def inverse_disambiguate(self, word, sense):
         """ Run "inverse" disambiguation over the whole vocabulary.
