@@ -6,11 +6,14 @@ def update_z(inputs, outputs,
              z, x, context_ids,
              paths, codes):
 
+    codes_ma = np.ma.masked_array(codes.copy(), [codes == -1])
+    codes_ma[codes_ma == 1] = -1  # Right child of previous node
+    codes_ma[codes_ma == 0] = 1   # Left ..
+
     for y in context_ids:
-        for code, path_w in zip(codes[y], paths[y]):
-            if code != -1:
-                f = inputs[x] @ outputs[path_w]
-                z += np.log(expit(f * (1 - 2 * code)))  # pylint: disable=no-member
+        for code, path_w in zip(codes_ma[y], paths[y]):
+            f = inputs[x] @ outputs[path_w]
+            z += np.log(expit(f * code))    # pylint: disable=no-member
 
     z_exp = np.exp(z - max(z))
 
